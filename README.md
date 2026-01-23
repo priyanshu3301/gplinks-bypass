@@ -1,4 +1,4 @@
-# Gplink Bypasser Extension
+# Gplink Bypasser Extension (Jan 2026)
 
 ## Overview
 **Gplink Bypasser** is a Chrome extension designed to automatically handle and bypass `gplinks.co` intermediate pages. It intercepts navigation to Gplinks URLs, processes the necessary verification steps in the background, and provides a clean, automated countdown interface before redirecting you to your final destination.
