@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Gplink bypasser",
-  "version": "2.0",
+  "version": "3.0",
   "icons": {
     "16": "image.png",
     "32": "image.png",
@@ -10,7 +10,6 @@
   },
   "permissions": [
     "webRequest",
-    "cookies",
     "tabs"
   ],
   "host_permissions": [
