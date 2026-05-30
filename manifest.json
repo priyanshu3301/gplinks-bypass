@@ -9,7 +9,6 @@
     "128": "image.png"
   },
   "permissions": [
-    "webRequest",
     "webNavigation",
     "cookies",
     "tabs"
