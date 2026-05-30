@@ -1,25 +1,45 @@
 document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const Url = decodeURIComponent(urlParams.get('Url'));
+  const rawUrl  = urlParams.get('url');
+  const rawData = urlParams.get('data');
 
-  // Validate finalUrl
-  if (!Url) {
-    document.querySelector('.message').textContent = "Error: No destination URL found.";
+  // Validate params
+  if (!rawUrl || !rawData) {
+    document.querySelector('.message').textContent = "Error: No destination data found.";
     document.querySelector('.message').style.color = "#ef4444";
     document.getElementById('countdown').textContent = "!";
     return;
   }
 
-  console.log("Received URL:", Url);
-  const url = new URL(Url);
-  const lid = atob(url.searchParams.get('lid'));
-  const pid = atob(url.searchParams.get('pid'));
-  const vid = url.searchParams.get('vid');
-  const pages = atob(url.searchParams.get('pages'));
+  const postUrl = decodeURIComponent(rawUrl);
+
+  let data;
+  try {
+    data = JSON.parse(decodeURIComponent(rawData));
+  } catch (e) {
+    document.querySelector('.message').textContent = "Error: Invalid data format.";
+    document.querySelector('.message').style.color = "#ef4444";
+    document.getElementById('countdown').textContent = "!";
+    return;
+  }
+
+  const lid   = data.lid;
+  const pid   = data.pid;
+  const vid   = data.vid;
+  const pages = parseInt(data.pages, 10);
+
+  console.log("Parsed data:", { lid, pid, vid, pages });
+  console.log("Post URL:", postUrl);
+
+  if (!lid || !pid || !vid || isNaN(pages)) {
+    document.querySelector('.message').textContent = "Error: Missing required link parameters.";
+    document.querySelector('.message').style.color = "#ef4444";
+    document.getElementById('countdown').textContent = "!";
+    return;
+  }
 
   const finalUrl = `https://gplinks.co/${lid}?pid=${pid}&vid=${vid}`;
   console.log("Final URL:", finalUrl);
-
 
   let timeLeft = pages * 30;
   const totalTime = timeLeft;
@@ -29,18 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize circle
   circle.style.strokeDasharray = `${circumference} ${circumference}`;
-
-  function setProgress(percent) {
-    const offset = circumference - (percent / 100) * circumference;
-    circle.style.strokeDashoffset = offset;
-  }
+  circle.style.strokeDashoffset = circumference;
 
   const timer = setInterval(() => {
     timeLeft--;
     countdownEl.textContent = timeLeft;
 
     // Update progress ring
-    const progress = ((totalTime - timeLeft) / totalTime) * 100;
     const remainingPercent = (timeLeft / totalTime) * 100;
     const newOffset = circumference - (remainingPercent / 100) * circumference;
     circle.style.strokeDashoffset = newOffset;
@@ -50,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('status').classList.add('visible');
       // Small delay to show 0
       setTimeout(() => {
-        processLink(pages, vid, url).then(() => {
+        processLink(pages, vid, postUrl).then(() => {
           window.location.href = finalUrl;
         }).catch(err => {
           console.error("Error processing link:", err);
@@ -60,8 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 500);
     }
   }, 1000);
-
-
 });
 
 function proxyFetch(url, options = {}) {
@@ -91,7 +104,6 @@ function proxyFetch(url, options = {}) {
       }
     }
 
-
     chrome.runtime.sendMessage(
       {
         type: "FETCH_PROXY",
@@ -118,7 +130,7 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function processLink(pages, vid, url) {
+async function processLink(pages, vid, postUrl) {
   for (let i = 1; i <= pages; i++) {
     const formData = new URLSearchParams({
       form_name: "ads-track-data",
@@ -128,7 +140,7 @@ async function processLink(pages, vid, url) {
       next_target: ""
     });
 
-    const response = await proxyFetch(url.origin + url.pathname, {
+    const response = await proxyFetch(postUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

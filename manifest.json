@@ -10,6 +10,8 @@
   },
   "permissions": [
     "webRequest",
+    "webNavigation",
+    "cookies",
     "tabs"
   ],
   "host_permissions": [
